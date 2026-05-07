@@ -26,10 +26,10 @@ include 'inc/header.php';
                     $tasks = getTasksList();
                     foreach ($tasks as $task) {
                         echo "<li class='item'>
-                                    <span class='item-title'>{$task['task_title']}</span>
-                                    <span class='item-project'>{$task['project_title']}</span>
-                                    <span class='item-date'>{$task['date']}</span>
-                                    <span class='item-time'>{$task['time']} min</span>
+                                    <span class='item-title'>
+                                    <a href='task.php?task_id=
+                                    {$task['task_id']}'>{$task['task_title']}</a>
+                                    </span>
                               </li>";
                     }
                 ?>
