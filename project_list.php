@@ -26,8 +26,10 @@ include 'inc/header.php';
                     $projects = getProjectList();
                     foreach ($projects as $project) {
                         echo "<li class='item'>
-                                    <span class='item-title'>{$project['title']}</span>
-                                    <span class='item-category'>{$project['category']}</span>
+                                    <span class='item-title'>
+                                    <a href='project.php?project_id={$project['project_id']}'>
+                                    {$project['title']}</a>
+                                    </span>
                                 
                               </li>";
                     }

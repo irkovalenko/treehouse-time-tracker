@@ -13,14 +13,21 @@ function getProjectList() {
         }
 }
 
-function addProject($title, $category) {
+function addProject($title, $category, $project_id = null) {
     include_once 'Database.php';
     $db = new Database();
+    if ($project_id) {
+        $sql = "UPDATE projects SET title = :title, category = :category WHERE project_id = :project_id";}
+        else {
     $sql = "INSERT INTO projects (title, category) VALUES (:title, :category)";
+        }
     try {
         $statement = $db->connection->prepare($sql);
         $statement->bindParam(':title', $title, PDO::PARAM_STR);
         $statement->bindParam(':category', $category, PDO::PARAM_STR);
+        if ($project_id) {
+            $statement->bindParam(':project_id', $project_id, PDO::PARAM_INT);
+        }
         return $statement->execute();
     } catch (Exception $e) {
         die("Error adding project: " . $e->getMessage());
@@ -90,16 +97,22 @@ AND STR_TO_DATE(date, '%d/%m/%Y') <= STR_TO_DATE(:end_date, '%d/%m/%Y')";
     return $statement->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function addTask($title, $project_id, $date, $time) {
+function addTask($title, $project_id, $date, $time, $task_id = null) {
     include_once 'Database.php';
     $db = new Database();
-    $sql = "INSERT INTO tasks (title, project_id, date, time) VALUES (:title, :project_id, :date, :time)";
+    if ($task_id) {
+        $sql = "UPDATE tasks SET title = :title, project_id = :project_id, date = :date, time = :time WHERE task_id = :task_id";
+    } else {
+    $sql = "INSERT INTO tasks (title, project_id, date, time) VALUES (:title, :project_id, :date, :time)";}
     try {
         $statement = $db->connection->prepare($sql);
         $statement->bindParam(':title', $title, PDO::PARAM_STR);
         $statement->bindParam(':project_id', $project_id, PDO::PARAM_INT);
         $statement->bindParam(':date', $date, PDO::PARAM_STR);
         $statement->bindParam(':time', $time, PDO::PARAM_INT);
+        if ($task_id) {
+            $statement->bindParam(':task_id', $task_id, PDO::PARAM_INT);
+        }
         return $statement->execute();
     } catch (Exception $e) {
         die("Error adding task: " . $e->getMessage());
@@ -110,7 +123,7 @@ function addTask($title, $project_id, $date, $time) {
 function getProject(string $project_id) {
     include_once 'Database.php';
     $db = new Database();
-    $sql = "SELECT title FROM projects WHERE project_id = :project_id";
+    $sql = "SELECT * FROM projects WHERE project_id = :project_id";
     try {
         $statement = $db->connection->prepare($sql);
         $statement->bindParam(':project_id', $project_id, PDO::PARAM_INT);
@@ -118,5 +131,19 @@ function getProject(string $project_id) {
         return $statement->fetch();
     } catch (Exception $e) {
         die("Error fetching project: " . $e->getMessage());
+    }
+}
+
+function getTask(string $task_id) {
+    include_once 'Database.php';
+    $db = new Database();
+    $sql = "SELECT task_id, title, date, time, project_id FROM tasks WHERE task_id = :task_id";
+    try {
+        $statement = $db->connection->prepare($sql);
+        $statement->bindParam(':task_id', $task_id, PDO::PARAM_INT);
+        $statement->execute();
+        return $statement->fetch();
+    } catch (Exception $e) {
+        die("Error fetching task: " . $e->getMessage());
     }
 }

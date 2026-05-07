@@ -3,9 +3,16 @@ require 'inc/functions.php';
 
 $pageTitle = "Task | Time Tracker";
 $page = "tasks";
-$project_did = $title = $date = $time = ''; //setting the variables to empty before submitting the form
+$projectId = $task_id = $title = $date = $time = ''; //setting the variables to empty before submitting the form
+
+
+if (isset($_GET['task_id'])) {
+    list($task_id, $title, $date, $time, $project_id) = getTask($_GET['task_id']);
+     $projectId = $project_id;
+}
 
 if ($_SERVER['REQUEST_METHOD']==='POST') {
+    $task_id = $_POST['task_id'] ?? '';
     $title = $_POST['title'] ?? ''; // raw input with no html escaping
     $projectId = $_POST['project_id'] ?? '';
     $date = $_POST['date'] ?? '';
@@ -30,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     }
     else
 {
-    if (addTask($title, $projectId, $date, $time)) {
+    if (addTask($title, $projectId, $date, $time, $task_id)) {
         header ("Location: task_list.php");
         exit();
     } else {
@@ -45,7 +52,14 @@ include 'inc/header.php';
 <div class="section page">
     <div class="col-container page-container">
         <div class="col col-70-md col-60-lg col-center">
-            <h1 class="actions-header">Add Task</h1>
+            <h1 class="actions-header"><?php
+                 if (!empty($task_id)) {
+                echo "Edit Task";
+            } else {
+                echo "Add Task";
+            }
+            ?>
+            </h1>
             <?php
             if (isset($error_message)) {
                 echo "<p class='message'>$error_message</p>";
@@ -89,6 +103,11 @@ include 'inc/header.php';
                         <td><input type="text" id="time" name="time" value="<?php echo htmlspecialchars($time, ENT_QUOTES, 'UTF-8'); ?>" /> minutes</td>
                     </tr>
                 </table>
+                <?php
+                if (!empty($task_id)) {
+                    echo "<input type='hidden' name='task_id' value='$task_id' />";
+                }
+                ?>
                 <input class="button button--primary button--topic-php" type="submit" value="Submit" />
             </form>
         </div>
