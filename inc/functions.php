@@ -40,12 +40,28 @@ function getTasksList($filter = null) {
     $filterValue = null;
 
     if (!empty($filter)) {
-        if (strpos($filter, 'category:') === 0) {
+        if (strpos($filter, 'date:') === 0) {
+            $dateFilter = substr($filter, 5);
+            $filterType = 'date';
+            if ($dateFilter === 'today') {
+    $today = date('d/m/Y');
+    $filterValue = ['start_date' => $today, 'end_date' => $today];
+} elseif ($dateFilter === 'week') {
+    $startOfWeek = date('d/m/Y', strtotime('monday this week'));
+    $endOfWeek = date('d/m/Y', strtotime('sunday this week'));
+    $filterValue = ['start_date' => $startOfWeek, 'end_date' => $endOfWeek];
+} elseif ($dateFilter === 'month') {
+    $startOfMonth = date('d/m/Y', strtotime('first day of this month'));
+    $endOfMonth = date('d/m/Y', strtotime('last day of this month'));
+    $filterValue = ['start_date' => $startOfMonth, 'end_date' => $endOfMonth];
+}
+        }
+        elseif (strpos($filter, 'category:') === 0) {
             $filterType = 'category';
             $filterValue = substr($filter, 9);
         } else {
             $filterType = 'project';
-            $filterValue = $filter;
+            $filterValue = substr($filter, 8);
         }
     }
 
@@ -53,6 +69,9 @@ function getTasksList($filter = null) {
         $sql .= " WHERE tasks.project_id = :project_id";
     } elseif ($filterType === 'category') {
         $sql .= " WHERE projects.category = :category";
+    } elseif ($filterType === 'date') {
+        $sql .= " WHERE STR_TO_DATE(date, '%d/%m/%Y') >= STR_TO_DATE(:start_date, '%d/%m/%Y')
+AND STR_TO_DATE(date, '%d/%m/%Y') <= STR_TO_DATE(:end_date, '%d/%m/%Y')";
     }
 
     $sql .= " ORDER BY projects.title, date DESC";
@@ -62,6 +81,9 @@ function getTasksList($filter = null) {
         $statement->bindValue(':project_id', $filterValue, PDO::PARAM_INT);
     } elseif ($filterType === 'category') {
         $statement->bindValue(':category', $filterValue, PDO::PARAM_STR);
+    } elseif ($filterType === 'date') {
+        $statement->bindValue(':start_date', $filterValue['start_date'], PDO::PARAM_STR);
+        $statement->bindValue(':end_date', $filterValue['end_date'], PDO::PARAM_STR);
     }
 
     $statement->execute();
@@ -83,4 +105,18 @@ function addTask($title, $project_id, $date, $time) {
         die("Error adding task: " . $e->getMessage());
     }
 
+}
+
+function getProject(string $project_id) {
+    include_once 'Database.php';
+    $db = new Database();
+    $sql = "SELECT title FROM projects WHERE project_id = :project_id";
+    try {
+        $statement = $db->connection->prepare($sql);
+        $statement->bindParam(':project_id', $project_id, PDO::PARAM_INT);
+        $statement->execute();
+        return $statement->fetch();
+    } catch (Exception $e) {
+        die("Error fetching project: " . $e->getMessage());
+    }
 }

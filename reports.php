@@ -15,7 +15,48 @@ include_once 'inc/header.php';
 <div class="col-container page-container">
     <div class="col col-70-md col-60-lg col-center">
         <div class="col-container">
-            <h1 class='actions-header'>Reports</h1>
+            <h1 class='actions-header'>Report on
+                <?php
+                if (empty($filter)) {
+                    echo "all tasks by project";
+                } else {
+                     $filterParts = explode(':', $filter, 2);
+                     $filterType = $filterParts[0];
+                     $filterValue = $filterParts[1] ?? null;
+                    echo htmlspecialchars($filterType) . " : ";
+        
+        switch ($filterType) {
+            case 'project':
+                $project = getProject($filterValue);
+                echo htmlspecialchars($project['title']);
+                break;
+            case 'category':
+                echo htmlspecialchars($filterValue);
+                break;
+            case 'date':
+                $dateRange = null;
+                if ($filterValue === 'today') {
+                    $today = date('Y-m-d');
+                    $dateRange = $today . " to " . $today;
+                } elseif ($filterValue === 'week') {
+                    $startOfWeek = date('Y-m-d', strtotime('monday this week'));
+                    $endOfWeek = date('Y-m-d', strtotime('sunday this week'));
+                    $dateRange = $startOfWeek . " to " . $endOfWeek;
+                } elseif ($filterValue === 'month') {
+                    $startOfMonth = date('Y-m-d', strtotime('first day of this month'));
+                    $endOfMonth = date('Y-m-d', strtotime('last day of this month'));
+                    $dateRange = $startOfMonth . " to " . $endOfMonth;
+                }
+                echo htmlspecialchars($dateRange ?? $filterValue);
+                break;
+            default:
+                echo htmlspecialchars($filter);
+                break;
+        }
+    }
+                     
+                ?>
+            </h1>
             <form class='form-container form-report' action='reports.php' method = 'get'>
                 <label for='filter'>Filter:</label>
                 <select id='filter' name='filter'>
@@ -23,7 +64,7 @@ include_once 'inc/header.php';
                     <optgroup label='Projects'></optgroup>
                     <?php
                     foreach (getProjectList() as $project) {
-                        echo "<option value='{$project['project_id']}'>";
+                        echo "<option value='project:{$project['project_id']}'>";
                         echo $project['title']. "</option>";
                     }
                     ?>
@@ -31,6 +72,11 @@ include_once 'inc/header.php';
                     <option value="category:Billable">Billable</option>
                     <option value="category:Charity">Charity</option>
                     <option value="category:Personal">Personal</option>
+
+                    <optgroup label='Dates'></optgroup>
+                    <option value="date:today">Today</option>
+                    <option value="date:week">This Week</option>
+                    <option value="date:month">This Month</option>
                 </select>
                 <input class='button' type='submit' value='Apply' />
 
