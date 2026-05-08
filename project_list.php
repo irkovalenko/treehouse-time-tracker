@@ -4,6 +4,17 @@ require 'inc/functions.php';
 $page = "projects";
 $pageTitle = "Project List | Time Tracker";
 
+if (isset($_POST['Delete'])) {
+    $project_id = $_POST['Delete'];
+    deleteProject($project_id);
+    header("Location: project_list.php?msg=Project+Deleted");
+    exit();
+}
+
+if (isset($_GET['msg'])) {
+    $error_message = trim($_GET['msg']);
+}
+
 include 'inc/header.php';
 ?>
 <div class="section catalog random">
@@ -13,10 +24,12 @@ include 'inc/header.php';
             <h1 class="actions-header">Project List</h1>
             <div class="actions-item">
                 <a class="actions-link" href="project.php">
-                <span class="actions-icon">
-                  <svg viewbox="0 0 64 64"><use xlink:href="#project_icon"></use></svg>
-                </span>
-                Add Project
+                    <span class="actions-icon">
+                        <svg viewbox="0 0 64 64">
+                            <use xlink:href="#project_icon"></use>
+                        </svg>
+                    </span>
+                    Add Project
                 </a>
             </div>
 
@@ -29,13 +42,17 @@ include 'inc/header.php';
                                     <span class='item-title'>
                                     <a href='project.php?project_id={$project['project_id']}'>
                                     {$project['title']}</a>
+                                    <form method='post' action='project_list.php' onsubmit=\"return confirm('Are you sure you want to delete this project?')\">
+                                    <input type='hidden' value='{$project['project_id']}' name='Delete' />
+                                    <input type='submit' value='Delete' class='button--delete' />
+                                    </form>
                                     </span>
                                 
                               </li>";
                     }
 
 
-?>
+                    ?>
 
                 </ul>
             </div>
